@@ -1,4 +1,4 @@
 # hello-world
 
- hello i have just tstarted to use github.
+ hello i have just started to use github.
  i would love to learn it.
