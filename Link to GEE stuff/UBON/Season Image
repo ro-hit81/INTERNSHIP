@@ -1,1 +1,59 @@
+Similar to CHIANG RAI, seasonal images are acquired. Along with the seasonal image, now we try to acquire NDWI of the image and
+mask out all the relevaent water data from the image which would be helpful during analysis.
+The URL for this code is :
+
+ URL [DRY_UBON] = https://code.earthengine.google.com/fae9e72dde23e375a86f9349f079b864
+ 
+ URL [WET UBON] = https://code.earthengine.google.com/29a6f41e89377364301a0d11e0a13524
+ 
+Using the following codes, we are able to achieve some useful outputs:
+ 
+ CODES FOR DRY UBON and its NDWI:
+ 
+var bound_img = image.filterBounds(boundary);
+var dry_img = bound_img.filterDate('2019-02-07', '2019-02-12');
+var cld_img = ee.Image(dry_img.sort('CLOUDY_PIXEL_PERCENTAGE'));
+var mosaic = dry_img.mosaic();
+var dry = mosaic.clip(river_buffer);
+dry = dry.select('B.+');
+print (cld_img);
+var nir = dry.select(['B8']);
+var green = dry.select(['B3']);
+var ndwi = green.subtract(nir).divide(green.add(nir));
+print (ndwi);
+Map.addLayer(ndwi, ndvi_visparam, 'NDWI');
+Map.addLayer(dry, imageVisParam,'dry');
+//Map.addLayer(river);
+Map.centerObject(boundary,8);
+//Export.image.toDrive({
+  //image: dry,
+  //description: 'DRY_IMAGE',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : boundary,
+//});
+
+CODES FOR WET UBON and its NDWI:
+
+var bound_img = image.filterBounds(boundary);
+var wet_img = bound_img.filterDate('2018-12-16', '2018-12-21');
+var cld_img = ee.Image(wet_img.sort('CLOUDY_PIXEL_PERCENTAGE'));
+print (cld_img);
+var mosaic =  wet_img.mosaic();
+var wet = mosaic.clip(river_buffer);
+wet = wet.select('B.+');
+Map.addLayer(wet, imageVisParam, 'wet');
+Map.centerObject(boundary,8);
+var green = wet.select(['B3']);
+var nir = wet.select(['B8']);
+var ndwi = green.subtract(nir).divide(green.add(nir));
+print (ndwi);
+Map.addLayer(ndwi, ndvi_visparam,'NDWI');
+//Export.image.toDrive({
+  //image: wet,
+  //description: 'WET_IMAGE',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : river_buffer,
+//});
 
