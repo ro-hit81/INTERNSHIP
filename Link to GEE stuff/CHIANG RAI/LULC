@@ -1,4 +1,109 @@
 Entering the following URL leads to land use land cover map of Chiang Rai.
 
 URL [DRY_LULC] : https://code.earthengine.google.com/851668b4a071a997cab807b56bc2c9ce
-URL [WET_LULC] : 
+URL [WET_LULC] : https://code.earthengine.google.com/5eb54b1606077811920a44d2a38c20b0
+
+It is the successive step followed just after the completion of seasonal image acquisition.
+To obtain the Land use land cover map, following codes is written:
+
+DRY LULC:
+
+Map.addLayer({
+  eeObject : image,
+  visParams : imageVisParam,
+  name :'True Color Composite',
+  shown : false});
+Map.addLayer({
+  eeObject : image,
+  visParams : imageVisParam2,
+  name : 'False Color Composite',
+  shown : false});
+Map.addLayer({
+  eeObject : image,
+  visParams : imageVisParam3,
+  name : 'Natural Color Composite',
+  shown : false});
+var B8 = image.select('B8');
+var B3 = image.select('B3');
+var ndwi = image.normalizedDifference(['B3', 'B8']);
+var ndwiViz = {min: 0.5, max: 1, palette: ['00FFFF', '0000FF']};
+//Map.addLayer(ndwi, ndwiViz, 'ndwi');
+var feat_coll = water.merge(non_water);
+print (feat_coll);
+var bands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'];
+var training = image.select(bands).sampleRegions({
+  collection : feat_coll,
+  properties  : ['landcover'],
+  scale : 8
+});
+print (training);
+var classifier = ee.Classifier.cart().train({
+  features : training,
+  classProperty : 'landcover',
+  inputProperties : bands
+});
+var classified = image.select(bands).classify(classifier);
+var LULC = classified.clip(river_buffer);
+Map.centerObject(feat_coll, 9);
+Map.addLayer(LULC, {min: 0, max: 1, palette: ['blue', 'red',]},'LULC');
+//Export.image.toDrive({
+  //image: LULC,
+  //description: 'LULC_dry',
+  //maxPixels : 300000000, 
+  //scale: 10,
+  //region: river_buffer
+//});
+
+
+
+WET LULC:
+
+Map.addLayer({
+  eeObject : image,
+  visParams : imageVisParam,
+  name : 'True Color Combination',
+  shown : false});
+Map.addLayer({
+  eeObject : image,
+  visParams : imageVisParam2,
+  name : 'False Color Combination',
+  shown : false});
+  Map.addLayer({
+  eeObject : image,
+  visParams : imageVisParam3,
+  name : 'Natural Colors with Atmospheric removal Combination',
+  shown : false});
+var feat_coll = water.merge(non_water);
+print (feat_coll);
+var bands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'];
+print (bands);
+var training = image.select(bands).sampleRegions({
+  collection : feat_coll,
+  properties : ['landcover'],
+  scale : 10
+});
+print (training);
+var classifier = ee.Classifier.cart().train({
+  features : training,
+  classProperty : 'landcover',
+  inputProperties : bands
+});
+print (classifier);
+var classified = image.select(bands).classify(classifier);
+print (classified);
+var LULC = classified.clip(river_buffer);
+var lulc_visparam = {min: 0, max: 1, palette: ['blue', 'red',]}
+Map.addLayer({
+  eeObject : LULC, 
+  visParams : lulc_visparam, 
+  name : 'LULC',
+  shown : true
+});
+Map.centerObject(boundary,9);
+//Export.image.toDrive({
+  //image: LULC,
+  //description: 'LULC_wet',
+  //maxPixels : 300000000,
+  //scale: 10,
+  //region: river_buffer
+//});
