@@ -1,0 +1,67 @@
+URL [DRY LULC] : https://code.earthengine.google.com/d20b77f515173d469502b319658eadb2
+URL [WET LULC] : https://code.earthengine.google.com/42858a1954fe09d45708756788997976
+
+CODES FOR DRY LULC :
+
+
+Map.addLayer(image, imageVisParam1, 'dry');
+Map.centerObject(boundary, 8);
+var feat_coll = water.merge(non_water);
+print (feat_coll);
+var bands = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12'];
+print (bands);
+var training = image.select(bands).sampleRegions({
+  collection : feat_coll,
+  properties : ['landcover'],
+  scale : 10
+});
+var classifier = ee.Classifier.cart().train({
+  features : training,
+  classProperty : 'landcover',
+  inputProperties : bands
+});
+print (classifier);
+var classified = image.select(bands).classify(classifier);
+print (classified);
+var LULC = classified.clip(river_buffer);
+Map.addLayer(LULC, {min: 0, max: 1, palette: ['blue', 'red',]}, 'LULC');
+//Export.image.toDrive({
+  //image: LULC,
+  //description: 'LULC_DRY',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : river_buffer
+//});
+
+CODES FOR WET LULC:
+
+Map.addLayer(image,imageVisParam1, 'wet1');
+Map.addLayer(image,imageVisParam2, 'wet2');
+Map.addLayer(image,imageVisParam3, 'wet3');
+Map.centerObject(boundary,8);
+var feat_coll = water.merge(non_water);
+print (feat_coll);
+var bands = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12'];
+print (bands);
+var training = image.select(bands).sampleRegions({
+  collection : feat_coll,
+  properties : ['landcover'],
+  scale : 10
+});
+var classifier = ee.Classifier.cart().train({
+  features : training,
+  classProperty : 'landcover',
+  inputProperties : bands
+});
+print (classifier);
+var classified = image.select(bands).classify(classifier);
+print (classified);
+var LULC = classified.clip(river_buffer);
+Map.addLayer(LULC, {min: 0, max: 1, palette: ['blue', 'red',]}, 'LULC');
+//Export.image.toDrive({
+  //image: LULC,
+  //description: 'LULC_WET2',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : river_buffer
+//});
