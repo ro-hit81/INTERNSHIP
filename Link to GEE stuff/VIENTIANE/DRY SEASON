@@ -1,0 +1,63 @@
+After completing 2 cities, now we can merge all the codes together and start preparing the land use land cover map in a single console.
+ URL [VIENTIANE_DRY] : https://code.earthengine.google.com/16931f46fa2991d2d59ddedec8121702
+ 
+ CODES: 
+ 
+ var bound_img = image.filterBounds(boundary);
+var s1_img = bound_img.filterDate('2019-02-05', '2019-02-07');
+var sort_img = ee.Image(s1_img.sort('CLOUD_COVERAGE_ASSESSMENT'));
+var mosaic_img = s1_img.mosaic();
+var dry = mosaic_img.clip(river_buffer);
+dry = dry.select('B.+');
+Map.addLayer({
+  eeObject : dry,
+  visParams : imageVisParam,
+  name : 'true',
+  shown: false
+});
+Map.addLayer({
+  eeObject : dry,
+  visParams : imageVisParam3,
+  name : 'false',
+  shown: false
+});
+Map.addLayer({
+  eeObject : dry,
+  visParams : imageVisParam2,
+  name : 'natural',
+  shown: false
+});
+Map.centerObject(river,8);
+//Export.image.toDrive({
+  //image: dry,
+  //description: 'DRY_IMAGE',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : river_buffer,
+//});
+var feat_coll = water.merge(vegetation).merge(other);
+print (feat_coll);
+var bands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'];
+print (bands);
+var training = dry.select(bands).sampleRegions({
+  collection : feat_coll,
+  properties : ['landcover'],
+  scale : 10
+});
+var classifier = ee.Classifier.cart().train({
+  features : training,
+  classProperty : 'landcover',
+  inputProperties : bands
+});
+print (classifier);
+var classified = dry.select(bands).classify(classifier);
+print (classified);
+var LULC = classified.clip(river_buffer);
+Map.addLayer(classified, {min: 0, max: 2, palette: ['blue', 'green', 'red']}, 'LULC');
+//Export.image.toDrive({
+  //image: classified,
+  //description: 'DRY_LULC',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : river_buffer,
+//});
