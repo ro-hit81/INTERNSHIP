@@ -1,0 +1,56 @@
+URL [VIENTIANE WET] : https://code.earthengine.google.com/f8b1d88570007459652405f439c125f0
+
+CODES:
+
+var bound_img = image.filterBounds(boundary);
+var s2_img = bound_img.filterDate('2019-04-20', '2019-04-23');
+var sort_img = ee.Image(s2_img.sort('CLOUD_COVERAGE_ASSESSMENT'));
+print (sort_img);
+var mosaic_img = s2_img.mosaic();
+var wet = mosaic_img.clip(river_buffer);
+wet = wet.select('B.+');
+Map.centerObject(river,8);
+Map.addLayer({
+  eeObject : wet,
+  visParams : imageVisParam,
+  name : 'wet',
+  shown : true
+});
+Map.addLayer({
+  eeObject : wet,
+  visParams : imageVisParam3,
+  name : 'false',
+  shown: false
+});
+Map.addLayer({
+  eeObject : wet,
+  visParams : imageVisParam2,
+  name : 'natural',
+  shown: false
+});
+var feat_coll = water.merge(vegetation).merge(other);
+print (feat_coll);
+var bands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'];
+print (bands);
+var training = wet.select(bands).sampleRegions({
+  collection : feat_coll,
+  properties : ['landcover'],
+  scale : 10
+});
+var classifier = ee.Classifier.cart().train({
+  features : training,
+  classProperty : 'landcover',
+  inputProperties : bands
+});
+print (classifier);
+var classified = wet.select(bands).classify(classifier);
+print (classified);
+var LULC = classified.clip(river_buffer);
+Map.addLayer(classified, {min: 0, max: 2, palette: ['blue', 'green', 'red']}, 'LULC');
+//Export.image.toDrive({
+  //image: classified,
+  //description: 'WET_LULC',
+  //scale: 10,
+  //axPixels: 10000000000000,
+  //region : river_buffer,
+//});
