@@ -1,0 +1,4 @@
+The Global Surface Water Explorer is a simple web-mapping tool that shows all of the water datasets and allows users to navigate the globe 
+visualizing the water datasets without installing any software. It also allows users to view the complete history of water detections over 
+the 35-year period by clicking on the map. The tool is intended as a data viewer and does not provide any analytical features - if you 
+would like to do your own analysis on the data then access the data using Data Download or Google Earth Engine.
