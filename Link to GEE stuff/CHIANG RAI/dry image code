@@ -1,8 +1,10 @@
-You can visit below URL to see the dry image of chiang rai.
+You can visit below URL to see the dry and wet image of chiang rai.
 
-https://code.earthengine.google.com/757011379ef0ead3f967f8cc49ac36f6
+URL [dry image] = https://code.earthengine.google.com/757011379ef0ead3f967f8cc49ac36f6
 
-Codes are written below.
+URL =[wet image] = https://code.earthengine.google.com/d74f1cd002cc7f5f2d0340b99b473144
+
+Codes for dry image are written below:
 
 var bound_image = image.filterBounds(boundary);
 var s1_image = bound_image.filterDate('2019-02-02', '2019-02-05');
@@ -17,6 +19,26 @@ Map.centerObject(boundary,9);
 //Export.image.toDrive({
   //image: dry,
   //description: 'DRY_IMAGE',
+  //scale: 10,
+  //maxPixels: 10000000000000,
+  //region : river_buffer,
+//});
+
+Codes for wet images are written below:
+
+var bound_image = image.filterBounds(boundary);
+var s2_image = bound_image.filterDate('2019-05-19', '2019-05-21');
+var cld_image = ee.Image(s2_image.sort('CLOUDY_PIXEL_PERCENTAGE'));
+var mosaic_image = s2_image.mosaic();
+var wet = mosaic_image.clip(boundary);
+wet = wet.select('B.+');
+print(cld_image);
+print (s2_image.size());
+Map.addLayer(wet, image_param, 'wet');
+Map.centerObject(boundary,9);
+//Export.image.toDrive({
+//image: wet,
+//description: 'WET_IMAGE',
   //scale: 10,
   //maxPixels: 10000000000000,
   //region : river_buffer,
